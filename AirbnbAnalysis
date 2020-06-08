@@ -1,0 +1,56 @@
+path = 'D:/workspace/python/pythonDataAnalyzBasic/Airbnb_DataAnalysis/Source_file/'
+df = pd.read_csv(path + 'listings.csv')
+df.describe()[['price', 'minimum_nights', 'number_of_reviews', 'reviews_per_month', 'calculated_host_listings_count', 'availability_365']]
+
+subsets = df[['price', 'minimum_nights', 'number_of_reviews', 'reviews_per_month', 'availability_365']]
+
+fig,axes = plt.subplots(len(subsets),1,figsize=(20,10))
+plt.subplots_adjust(hspace=1 )
+for i,subset in enumerate(subsets):
+    sns.boxplot(df[subset], ax=axes[i],whis=2,orient='h')
+    
+    # 小于1000的price值 - regular price - reg_p
+reg_p = []
+for pr in df['price']:
+    if pr < 1000:
+        reg_p.append(pr)
+'''
+len(reg_p) = 25744
+len(reg_p) / len(list_df['price'])
+0.9048221566146493
+小于1000的price值占全部price的90.48%
+'''
+
+sns.boxplot(reg_p, orient='h')
+plt.show()
+
+df1 = df[['price', 'minimum_nights', 'number_of_reviews', 'availability_365']]
+# 抽取几列出来作为一个纯数字的新df，看相关关系
+# scatter_matrix(df1, alpha=0.5, diagonal='kde')
+
+
+plt.scatter(df['latitude'], df['longitude'], cmap='Reds', alpha=0.5)
+
+lst_nei = list(set(df['neighbourhood']))
+lst_nei
+
+lst_dis = df.neighbourhood.value_counts()
+labels = lst_dis.index
+plt.figure(figsize=(15,15))
+plt.pie(lst_dis, labels=labels,autopct='%.2f%%')
+
+def get_review_tb(df,num):#获取各区评论数量top/bottom的数量，根据num参数,num为正表示top，为负数表示bottom
+    result=[]
+    groups = df.groupby('neighbourhood')
+    for x,group in groups:
+        if num>0:
+            result.append(group.sort_values(by='number_of_reviews',ascending=False)[:num])
+        if num<0:
+            result.append(group.sort_values(by='number_of_reviews',ascending=False)[num:])
+    result = pd.concat(result)
+    return result
+    
+    reviews_top5=get_review_tb(df,5)#获取各区评论数top5的listing信息
+reviews_top5
+
+set(df.room_type)
